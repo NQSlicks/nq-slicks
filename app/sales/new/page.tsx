@@ -16,6 +16,7 @@ export default function NewSalePage() {
   const [tyreType, setTyreType] = useState('both')
   const [loading, setLoading] = useState(false)
   const [showAddCustomer, setShowAddCustomer] = useState(false)
+  const [showAddVehicle, setShowAddVehicle] = useState(false)
   const [newCustomerName, setNewCustomerName] = useState('')
   const [newCustomerMobile, setNewCustomerMobile] = useState('')
   const [newCustomerEmail, setNewCustomerEmail] = useState('')
@@ -115,6 +116,47 @@ export default function NewSalePage() {
     } catch (error) {
       console.error('Error:', error)
     }
+  }
+
+  const addNewVehicle = async () => {
+    if (!selectedCustomer) return
+    if (!newVehicleRegistration || !newVehicleMake || !newVehicleModel) {
+      alert('Please enter registration, make, and model')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { data: vehicleData, error: vehicleError } = await supabase
+        .from('vehicles')
+        .insert([{
+          customer_id: selectedCustomer.id,
+          registration: newVehicleRegistration,
+          make: newVehicleMake,
+          model: newVehicleModel,
+          year: parseInt(newVehicleYear) || null,
+          current_tyre_size: newVehicleTyreSize || null
+        }])
+        .select()
+
+      if (vehicleError) throw vehicleError
+
+      const newVehicle = vehicleData?.[0]
+      if (!newVehicle) throw new Error('Failed to create vehicle')
+
+      setVehicles((currentVehicles) => [...currentVehicles, newVehicle])
+      setSelectedVehicle(newVehicle)
+      setShowAddVehicle(false)
+      setNewVehicleRegistration('')
+      setNewVehicleMake('')
+      setNewVehicleModel('')
+      setNewVehicleYear('')
+      setNewVehicleTyreSize('')
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Failed to add vehicle')
+    }
+    setLoading(false)
   }
 
   const loadTyres = async () => {
@@ -288,16 +330,80 @@ export default function NewSalePage() {
         {step === 2 && (
           <div className="bg-white rounded-lg p-8 shadow">
             <h2 className="text-2xl font-bold mb-6">Step 2: Vehicle</h2>
-            {vehicles.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setSelectedVehicle(v)}
-                className="w-full text-left px-4 py-3 border rounded mb-2 hover:bg-gray-50"
-              >
-                <div className="font-semibold">{v.registration}</div>
-                <div className="text-sm text-gray-600">{v.year} {v.make} {v.model}</div>
-              </button>
-            ))}
+            {!showAddVehicle ? (
+              <>
+                {vehicles.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => setSelectedVehicle(v)}
+                    className={`w-full text-left px-4 py-3 border rounded mb-2 hover:bg-gray-50 ${selectedVehicle?.id === v.id ? 'border-blue-600 bg-blue-50' : ''}`}
+                  >
+                    <div className="font-semibold">{v.registration}</div>
+                    <div className="text-sm text-gray-600">{v.year} {v.make} {v.model}</div>
+                  </button>
+                ))}
+                <button
+                  onClick={() => setShowAddVehicle(true)}
+                  className="w-full mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+                >
+                  Add Vehicle
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold mb-4">Add Vehicle</h3>
+                <input
+                  type="text"
+                  placeholder="Registration (e.g. ABC123)"
+                  value={newVehicleRegistration}
+                  onChange={(e) => setNewVehicleRegistration(e.target.value)}
+                  className="w-full px-4 py-2 border rounded mb-4"
+                />
+                <input
+                  type="text"
+                  placeholder="Make (e.g. Toyota)"
+                  value={newVehicleMake}
+                  onChange={(e) => setNewVehicleMake(e.target.value)}
+                  className="w-full px-4 py-2 border rounded mb-4"
+                />
+                <input
+                  type="text"
+                  placeholder="Model (e.g. Hilux)"
+                  value={newVehicleModel}
+                  onChange={(e) => setNewVehicleModel(e.target.value)}
+                  className="w-full px-4 py-2 border rounded mb-4"
+                />
+                <input
+                  type="text"
+                  placeholder="Year (e.g. 2019)"
+                  value={newVehicleYear}
+                  onChange={(e) => setNewVehicleYear(e.target.value)}
+                  className="w-full px-4 py-2 border rounded mb-4"
+                />
+                <input
+                  type="text"
+                  placeholder="Tyre Size (e.g. 265/60R18)"
+                  value={newVehicleTyreSize}
+                  onChange={(e) => setNewVehicleTyreSize(e.target.value)}
+                  className="w-full px-4 py-2 border rounded mb-4"
+                />
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setShowAddVehicle(false)}
+                    className="flex-1 bg-gray-400 text-white py-2 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={addNewVehicle}
+                    disabled={loading}
+                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 rounded"
+                  >
+                    {loading ? 'Saving...' : 'Save Vehicle'}
+                  </button>
+                </div>
+              </>
+            )}
             <div className="flex gap-4 mt-6">
               <button onClick={() => setStep(1)} className="flex-1 bg-gray-400 text-white py-2 rounded">Back</button>
               <button onClick={() => setStep(3)} disabled={!selectedVehicle} className="flex-1 bg-blue-600 disabled:bg-gray-400 text-white py-2 rounded">Continue</button>
@@ -368,4 +474,4 @@ export default function NewSalePage() {
       </div>
     </div>
   )
-}
+} 
