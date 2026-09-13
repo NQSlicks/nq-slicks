@@ -6,8 +6,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-900">
       <div className="max-w-4xl mx-auto p-8">
-        <h1 className="text-4xl font-bold text-white mb-4">NQ Slicks</h1>
-        <p className="text-gray-400 mb-12">Tyre shop system</p>
+        <h1 className="text-4xl font-bold text-white mb-4">NQ Slicks Pty Ltd</h1>
+        <p className="text-gray-400 mb-12">Petersens Secondhand and New Tyres</p>
 
         <div className="grid grid-cols-1 gap-6">
           <Link href="/sales/new">
